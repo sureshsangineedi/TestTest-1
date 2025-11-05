@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: student-ingress
+  annotations:
+    # 1. Specify the Ingress Class (must match your installed controller, e.g., 'nginx')
+    kubernetes.io/ingress.class: "nginx" # Use this older annotation if ingressClassName is not supported
+    # OR: ingressClassName: nginx # Use this for Kubernetes v1.18+
+
+    # 2. Rewrite Annotation: This is crucial. It tells NGINX to strip the '/student' path 
+    #    before forwarding the request to the 'student-app' container.
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  # If using Kubernetes v1.18+ and your controller supports it, uncomment this:
+  # ingressClassName: nginx 
+  rules:
+  - http:
+      paths:
+      - path: /student(/|$)(.*) # Match the /student path, capturing the rest of the URL
+        pathType: Prefix
+        backend:
+          service:
+            name: student-service
+            port:
+              number: 80 # Matches the 'port' defined in your Service
